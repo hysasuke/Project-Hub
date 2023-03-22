@@ -8,6 +8,8 @@ const { startWebsocketServer } = require("./websocketServer");
 const path = require("path");
 const { openUrl } = require("./Controllers/system-controller");
 
+if (require("electron-squirrel-startup")) app.quit();
+
 const db = new sqlite3.Database(path.join(__dirname + "/database/database.db"));
 const sql = fs
   .readFileSync(path.join(__dirname + "/database/data.sql"))
