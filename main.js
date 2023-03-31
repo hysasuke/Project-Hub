@@ -34,12 +34,33 @@ app.whenReady().then(() => {
   );
   tray = new Tray(icon);
 
+  const loginItemSettings = app.getLoginItemSettings();
+  const appFolder = path.dirname(process.execPath);
+  const updateExe = path.resolve(appFolder, "..", "Update.exe");
+  const exeName = path.basename(process.execPath);
   // note: your contextMenu, Tooltip and Title code will go here!
   const contextMenu = Menu.buildFromTemplate([
     {
+      label: "Auto Start",
+      type: "checkbox",
+      checked: loginItemSettings.openAtLogin,
+      click: () => {
+        app.setLoginItemSettings({
+          openAtLogin: !loginItemSettings.openAtLogin,
+          path: updateExe,
+          args: [
+            "--processStart",
+            `"${exeName}"`,
+            "--process-start-args",
+            `"--hidden"`
+          ]
+        });
+      }
+    },
+    {
       label: "Open Project Hub",
       click: () => {
-        openUrl("http://localhost:3001");
+        openUrl("http://localhost:9153");
       }
     },
     {

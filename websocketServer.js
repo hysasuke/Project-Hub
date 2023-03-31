@@ -22,6 +22,11 @@ const startWebsocketServer = () => {
       messageHandler(JSON.parse(message));
     });
 
+    // Set interval to ping client every 10 seconds to indicate that the server is still alive
+    const interval = setInterval(() => {
+      socket.send("ping");
+    }, 5000);
+
     socket.on("close", () => {
       console.log("Client disconnected");
     });
