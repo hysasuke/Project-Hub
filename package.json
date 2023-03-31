@@ -42,7 +42,7 @@
         {
           "name": "@electron-forge/maker-squirrel",
           "config": {
-            "name": "Project Hub",
+            "name": "ProjectHub",
             "title": "Project Hub",
             "setupIcon": "./assets/Images/icon.ico",
             "iconUrl": "https://raw.githubusercontent.com/hysasuke/Project-Hub/master/assets/Images/icon.ico",
