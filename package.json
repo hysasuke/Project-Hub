@@ -1,6 +1,6 @@
 {
   "name": "project-hub",
-  "version": "0.0.1-alpha",
+  "version": "0.0.2",
   "description": "Project Hub",
   "main": "main.js",
   "author": "Wenhao Li",
@@ -9,7 +9,7 @@
   "scripts": {
     "start": "electron-forge start",
     "package": "electron-forge package",
-    "make": "electron-forge make",
+    "make": "electron-forge make --arch=x64 --platform=win32",
     "publish": "electron-forge publish"
   },
   "devDependencies": {
