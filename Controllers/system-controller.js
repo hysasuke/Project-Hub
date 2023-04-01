@@ -24,17 +24,14 @@ async function selectFile(req, res) {
       }
     );
     // Save icon to appData
-    const iconPath = path.join(app.getPath("appData"), "ProjectHub", "icons");
+    const iconPath = path.join(__dirname, "/../public/icons");
     // Check if icon folder exists
     if (!fs.existsSync(iconPath)) {
       fs.mkdirSync(iconPath);
     }
 
     let iconName = fileNameWithoutExtension + ".png";
-    fs.writeFileSync(
-      path.join(app.getPath("appData"), "ProjectHub", "icons", iconName),
-      fileIcon.toPNG()
-    );
+    fs.writeFileSync(iconPath + "/" + iconName, fileIcon.toPNG());
 
     res.status(200);
     res.send({
@@ -43,7 +40,7 @@ async function selectFile(req, res) {
         name: fileNameWithoutExtension,
         nameWithExtension: fileName,
         path: filePath,
-        icon: iconPath + "/" + iconName
+        icon: iconName
       }
     });
   } else {
