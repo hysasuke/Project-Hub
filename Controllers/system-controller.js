@@ -1,8 +1,8 @@
-const { dialog, BrowserWindow } = require("electron");
-const icon = require("file-icon-extractor");
+const { dialog, BrowserWindow, app } = require("electron");
 const path = require("path");
 const { exec } = require("child_process");
 const audio = require("win-audio").speaker;
+const fs = require("fs");
 async function selectFile(req, res) {
   let selectedFiles = await dialog.showOpenDialog({
     properties: ["openFile"]
@@ -13,12 +13,29 @@ async function selectFile(req, res) {
     let splittedFileName = fileName.split(".");
     splittedFileName.pop();
     let fileNameWithoutExtension = splittedFileName.join(".");
-    icon.extract(
+    // icon.extract(
+    //   selectedFiles.filePaths[0].toString(),
+    //   path.join(__dirname, "/../public/icons")
+    // );
+    const fileIcon = await app.getFileIcon(
       selectedFiles.filePaths[0].toString(),
-      path.join(__dirname, "/../public/icons")
+      {
+        size: "large"
+      }
     );
+    // Save icon to appData
+    const iconPath = path.join(app.getPath("appData"), "ProjectHub", "icons");
+    // Check if icon folder exists
+    if (!fs.existsSync(iconPath)) {
+      fs.mkdirSync(iconPath);
+    }
 
     let iconName = fileNameWithoutExtension + ".png";
+    fs.writeFileSync(
+      path.join(app.getPath("appData"), "ProjectHub", "icons", iconName),
+      fileIcon.toPNG()
+    );
+
     res.status(200);
     res.send({
       error: 0,
@@ -26,7 +43,7 @@ async function selectFile(req, res) {
         name: fileNameWithoutExtension,
         nameWithExtension: fileName,
         path: filePath,
-        icon: iconName
+        icon: iconPath + "/" + iconName
       }
     });
   } else {

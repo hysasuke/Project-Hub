@@ -9,26 +9,41 @@ const path = require("path");
 const { openUrl } = require("./Controllers/system-controller");
 
 if (require("electron-squirrel-startup")) app.quit();
-const dbFileName = app.isPackaged ? "database.db" : "database_dev.db";
-const db = new sqlite3.Database(
-  path.join(__dirname + "/database/" + dbFileName)
-);
-const sql = fs
-  .readFileSync(path.join(__dirname + "/database/data.sql"))
-  .toString();
-let tray;
 
-db.exec(sql, function (err) {
-  if (err) {
-    console.error(err.message);
-  } else {
-    console.log("Queries executed successfully.");
+const handleDatabase = () => {
+  // Check if database folder exists
+  const databasePath = path.join(app.getPath("appData"), "ProjectHub");
+
+  const dbFileName = "database.db";
+  if (!fs.existsSync(databasePath)) {
+    fs.mkdirSync(databasePath);
+    // Create empty database.db file
+    fs.writeFileSync(path.join(databasePath, dbFileName), "");
   }
-});
+  const db = new sqlite3.Database(databasePath + "/" + dbFileName);
+  const sql = fs
+    .readFileSync(path.join(__dirname + "/database/data.sql"))
+    .toString();
+  let tray;
 
-global.db = db;
+  db.exec(sql, function (err) {
+    if (err) {
+      console.error(err.message);
+    } else {
+      console.log("Queries executed successfully.");
+    }
+  });
+
+  global.db = db;
+};
 
 app.whenReady().then(() => {
+  // Make appData directory
+  const appDataPath = path.join(app.getPath("appData"), "ProjectHub");
+  if (!fs.existsSync(appDataPath)) {
+    fs.mkdirSync(appDataPath);
+  }
+  handleDatabase();
   const icon = nativeImage.createFromPath(
     path.join(__dirname + "/assets/Images/icon.ico")
   );
@@ -43,7 +58,7 @@ app.whenReady().then(() => {
     {
       label: "Auto Start",
       type: "checkbox",
-      checked: loginItemSettings.openAtLogin,
+      checked: loginItemSettings.executableWillLaunchAtLogin,
       click: () => {
         app.setLoginItemSettings({
           openAtLogin: !loginItemSettings.openAtLogin,
