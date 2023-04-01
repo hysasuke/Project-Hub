@@ -91,6 +91,11 @@ function startExpressServer() {
     getVolume(req, res);
   });
 
+  expressApp.get("/serverHealthCheck", (req, res) => {
+    res.send("ok");
+    res.status(200);
+  });
+
   expressApp.listen(port, () => {
     console.log(`Example app listening on port ${port}`);
   });
