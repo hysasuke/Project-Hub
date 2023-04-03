@@ -33,7 +33,7 @@ async function addGroup(req, res) {
 async function getGroupItems(req, res) {
   const { groupId } = req.params;
   global.db.all(
-    `SELECT * FROM 'group_item' WHERE group_id = ${groupId};`,
+    `SELECT * FROM 'group_item' WHERE group_id = ${groupId} ORDER BY [order];`,
     (err, rows) => {
       if (err) {
         console.error(err.message);
@@ -181,6 +181,32 @@ async function renameGroupItem(req, res) {
   );
 }
 
+async function reorderGroupItems(req, res) {
+  const { groupItems } = req.body;
+  let i = 0;
+  const output = { success: [], error: [] };
+  groupItems.forEach((item) => {
+    global.db.run(
+      `UPDATE 'group_item' SET [order] = ? WHERE id = ?;`,
+      [i, item.id],
+      (err, rows) => {
+        if (err) {
+          console.error(err.message);
+          output.error.push(rows);
+        } else {
+          output.success.push(rows);
+        }
+      }
+    );
+    i++;
+  });
+  res.send({
+    error: 0,
+    data: output
+  });
+  res.status(200);
+}
+
 module.exports = {
   getGroups,
   addGroup,
@@ -189,5 +215,6 @@ module.exports = {
   deleteGroupItem,
   renameGroup,
   deleteGroup,
-  renameGroupItem
+  renameGroupItem,
+  reorderGroupItems
 };
