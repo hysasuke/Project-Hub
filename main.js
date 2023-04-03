@@ -1,14 +1,16 @@
-const { app, Tray, Menu, nativeImage } = require("electron");
-const { open } = require("./Controllers/application-controller");
-const { exec } = require("child_process");
+const { app, Tray, Menu, nativeImage, autoUpdater } = require("electron");
 const sqlite3 = require("sqlite3");
 const fs = require("fs");
 const { startExpressServer } = require("./expressServer");
 const { startWebsocketServer } = require("./websocketServer");
 const path = require("path");
 const { openUrl } = require("./Controllers/system-controller");
-
 if (require("electron-squirrel-startup")) app.quit();
+
+// Set update feed url
+autoUpdater.setFeedURL({
+  url: "https://github.com/hysasuke/Project-Hub/releases/latest/download/x64.zip"
+});
 
 const handleDatabase = () => {
   // Check if database folder exists
@@ -38,6 +40,18 @@ const handleDatabase = () => {
 };
 
 app.whenReady().then(() => {
+  // Set event listeners
+  autoUpdater.on("checking-for-update", () => {
+    console.log("Checking for update...");
+  });
+  autoUpdater.on("update-available", (info) => {
+    console.log("Update available.");
+  });
+  // set auto update if in production
+  if (app.isPackaged) {
+    autoUpdater.checkForUpdates();
+  }
+
   // Make appData directory
   const appDataPath = path.join(app.getPath("appData"), "ProjectHub");
   if (!fs.existsSync(appDataPath)) {
@@ -49,7 +63,9 @@ app.whenReady().then(() => {
   );
   tray = new Tray(icon);
 
-  const loginItemSettings = app.getLoginItemSettings();
+  const loginItemSettings = app.getLoginItemSettings({
+    openAtLogin: true
+  });
   const appFolder = path.dirname(process.execPath);
   const updateExe = path.resolve(appFolder, "..", "Update.exe");
   const exeName = path.basename(process.execPath);
@@ -58,17 +74,11 @@ app.whenReady().then(() => {
     {
       label: "Auto Start",
       type: "checkbox",
-      checked: loginItemSettings.executableWillLaunchAtLogin,
+      checked: loginItemSettings.openAtLogin,
       click: () => {
         app.setLoginItemSettings({
           openAtLogin: !loginItemSettings.openAtLogin,
-          path: updateExe,
-          args: [
-            "--processStart",
-            `"${exeName}"`,
-            "--process-start-args",
-            `"--hidden"`
-          ]
+          path: updateExe
         });
       }
     },

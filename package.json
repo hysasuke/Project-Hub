@@ -1,6 +1,6 @@
 {
   "name": "project-hub",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "description": "Project Hub",
   "main": "main.js",
   "author": "Wenhao Li",
@@ -8,8 +8,8 @@
   "private": false,
   "scripts": {
     "start": "electron-forge start",
-    "package": "electron-forge package",
-    "make": "electron-forge make --arch=x64 --platform=win32",
+    "package": "electron-forge package --arch=ia32",
+    "make": "electron-forge make --arch=ia32",
     "publish": "electron-forge publish"
   },
   "devDependencies": {
@@ -40,6 +40,9 @@
       "makers": [
         {
           "name": "@electron-forge/maker-squirrel",
+          "arch": [
+            "ia32"
+          ],
           "config": {
             "name": "ProjectHub",
             "title": "Project Hub",
