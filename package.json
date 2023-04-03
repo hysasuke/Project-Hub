@@ -8,8 +8,8 @@
   "private": false,
   "scripts": {
     "start": "electron-forge start",
-    "package": "electron-forge package --arch=ia32",
-    "make": "electron-forge make --arch=ia32",
+    "package": "electron-forge package",
+    "make": "electron-forge make",
     "publish": "electron-forge publish"
   },
   "devDependencies": {
@@ -40,9 +40,6 @@
       "makers": [
         {
           "name": "@electron-forge/maker-squirrel",
-          "arch": [
-            "ia32"
-          ],
           "config": {
             "name": "ProjectHub",
             "title": "Project Hub",
