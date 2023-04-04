@@ -1,16 +1,17 @@
-const { app, Tray, Menu, nativeImage, autoUpdater } = require("electron");
+const { app, Tray, Menu, nativeImage } = require("electron");
 const sqlite3 = require("sqlite3");
 const fs = require("fs");
 const { startExpressServer } = require("./expressServer");
 const { startWebsocketServer } = require("./websocketServer");
 const path = require("path");
 const { openUrl } = require("./Controllers/system-controller");
-if (require("electron-squirrel-startup")) app.quit();
+const log = require("electron-log");
+const {
+  checkForUpdate,
+  downloadLatestRelease
+} = require("./Utils/autoUpdater");
 
-// Set update feed url
-require("update-electron-app")({
-  logger: require("electron-log")
-});
+if (require("electron-squirrel-startup")) app.quit();
 
 const handleDatabase = () => {
   // Check if database folder exists
@@ -39,7 +40,15 @@ const handleDatabase = () => {
   global.db = db;
 };
 
-app.whenReady().then(() => {
+app.whenReady().then(async () => {
+  // Check for update
+  const updateInfo = await checkForUpdate(
+    "https://api.github.com/repos/hysasuke/project-hub/releases"
+  );
+  console.log(updateInfo);
+  if (updateInfo.updateAvailable) {
+    downloadLatestRelease(updateInfo.downloadUrls);
+  }
   // Make appData directory
   const appDataPath = path.join(app.getPath("appData"), "ProjectHub");
   if (!fs.existsSync(appDataPath)) {

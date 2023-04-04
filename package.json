@@ -1,6 +1,6 @@
 {
   "name": "ProjectHub",
-  "version": "0.0.4",
+  "version": "0.0.5",
   "description": "Project Hub",
   "main": "main.js",
   "author": "Wenhao Li",
@@ -34,24 +34,11 @@
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "sqlite3": "^5.1.4",
+    "update-electron-app": "^2.0.1",
     "win-audio": "^2.0.2",
     "ws": "^8.13.0"
   },
   "config": {
-    "forge": {
-      "makers": [
-        {
-          "name": "@electron-forge/maker-squirrel",
-          "config": {
-            "name": "ProjectHub",
-            "title": "Project Hub",
-            "exe": "Project Hub.exe",
-            "setupIcon": "./assets/Images/icon.ico",
-            "iconUrl": "https://www.project-hub.app/favicon.ico",
-            "loadingGif": "./assets/Images/loading.gif"
-          }
-        }
-      ]
-    }
+    "forge": "./forge.config.js"
   }
 }
