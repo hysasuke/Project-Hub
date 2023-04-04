@@ -8,8 +8,8 @@ const { openUrl } = require("./Controllers/system-controller");
 if (require("electron-squirrel-startup")) app.quit();
 
 // Set update feed url
-autoUpdater.setFeedURL({
-  url: "https://github.com/hysasuke/Project-Hub/releases/latest/download/x64.zip"
+require("update-electron-app")({
+  logger: require("electron-log")
 });
 
 const handleDatabase = () => {
@@ -40,27 +40,14 @@ const handleDatabase = () => {
 };
 
 app.whenReady().then(() => {
-  // Set event listeners
-  autoUpdater.on("checking-for-update", () => {
-    console.log("Checking for update...");
-  });
-  autoUpdater.on("update-available", (info) => {
-    console.log("Update available.");
-  });
-  // set auto update if in production
-  if (app.isPackaged) {
-    autoUpdater.checkForUpdates();
-  }
-
   // Make appData directory
   const appDataPath = path.join(app.getPath("appData"), "ProjectHub");
   if (!fs.existsSync(appDataPath)) {
     fs.mkdirSync(appDataPath);
   }
   handleDatabase();
-  const icon = nativeImage.createFromPath(
-    path.join(__dirname + "/assets/Images/icon.ico")
-  );
+  const iconPath = path.join(__dirname + "/assets/Images/icon.ico");
+  const icon = nativeImage.createFromPath(iconPath);
   tray = new Tray(icon);
 
   const loginItemSettings = app.getLoginItemSettings({
