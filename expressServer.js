@@ -1,6 +1,8 @@
 const express = require("express");
 const path = require("path");
 const cors = require("cors");
+
+const log = require("electron-log");
 const {
   getGroups,
   addGroup,
@@ -20,6 +22,7 @@ const {
 } = require("./Controllers/system-controller");
 const { handleGroupItem } = require("./Controllers/group-item-controller");
 const expressApp = express();
+let server;
 const port = 9153;
 function startExpressServer() {
   expressApp.use(cors());
@@ -101,9 +104,14 @@ function startExpressServer() {
     res.status(200);
   });
 
-  expressApp.listen(port, () => {
+  server = expressApp.listen(port, () => {
+    log.info("Express server started on port " + port);
     console.log(`Example app listening on port ${port}`);
   });
 }
 
-module.exports = { startExpressServer };
+function stopExpressServer() {
+  server.close();
+}
+
+module.exports = { startExpressServer, stopExpressServer };

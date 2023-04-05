@@ -65,6 +65,11 @@ const messageHandler = (message) => {
   }
 };
 
+function stopWebsocketServer() {
+  server.close();
+}
+
 module.exports = {
-  startWebsocketServer
+  startWebsocketServer,
+  stopWebsocketServer
 };

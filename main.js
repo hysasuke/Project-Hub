@@ -1,15 +1,21 @@
-const { app, Tray, Menu, nativeImage } = require("electron");
+const {
+  app,
+  Tray,
+  Menu,
+  nativeImage,
+  autoUpdater,
+  dialog
+} = require("electron");
 const sqlite3 = require("sqlite3");
 const fs = require("fs");
-const { startExpressServer } = require("./expressServer");
-const { startWebsocketServer } = require("./websocketServer");
+const { startExpressServer, stopExpressServer } = require("./expressServer");
+const {
+  startWebsocketServer,
+  stopWebsocketServer
+} = require("./websocketServer");
 const path = require("path");
 const { openUrl } = require("./Controllers/system-controller");
 const log = require("electron-log");
-const {
-  checkForUpdate,
-  downloadLatestRelease
-} = require("./Utils/autoUpdater");
 
 if (require("electron-squirrel-startup")) app.quit();
 
@@ -41,13 +47,48 @@ const handleDatabase = () => {
 };
 
 app.whenReady().then(async () => {
+  log.info(process.argv);
   // Check for update
-  const updateInfo = await checkForUpdate(
-    "https://api.github.com/repos/hysasuke/project-hub/releases"
-  );
-  console.log(updateInfo);
-  if (updateInfo.updateAvailable) {
-    downloadLatestRelease(updateInfo.downloadUrls);
+  autoUpdater.setFeedURL({
+    url: "https://github.com/hysasuke/Project-Hub/releases/latest/download/"
+  });
+
+  autoUpdater.on("checking-for-update", () => {
+    log.info("Checking for update...");
+  });
+  autoUpdater.on("update-available", (info) => {
+    log.info("Update available.");
+  });
+
+  autoUpdater.on("update-downloaded", (info) => {
+    log.info("Update downloaded");
+    autoUpdater.quitAndInstall();
+  });
+
+  autoUpdater.on("update-not-available", (info) => {
+    log.info("Update not available.");
+  });
+
+  autoUpdater.on("error", (err) => {
+    log.info("Error in auto-updater. " + err);
+  });
+
+  autoUpdater.on("before-quit-for-update", () => {
+    log.info("Update downloaded; will install on quit");
+    stopExpressServer();
+    stopWebsocketServer();
+  });
+
+  // Listen to before-quit event
+  app.on("before-quit", () => {
+    log.info("App is quitting...");
+    stopExpressServer();
+    stopWebsocketServer();
+  });
+
+  // set auto update if in production
+  if (app.isPackaged) {
+    autoUpdater.checkForUpdates();
   }
   // Make appData directory
   const appDataPath = path.join(app.getPath("appData"), "ProjectHub");
@@ -67,6 +108,7 @@ app.whenReady().then(async () => {
   const exeName = path.basename(process.execPath);
   // note: your contextMenu, Tooltip and Title code will go here!
   const contextMenu = Menu.buildFromTemplate([
+    { label: "Current Version: " + app.getVersion(), enabled: false },
     {
       label: "Auto Start",
       type: "checkbox",
@@ -99,6 +141,8 @@ app.whenReady().then(async () => {
   tray.setToolTip("Project Hub");
   tray.setTitle("Project Hub");
 
+  log.info("Starting express server...");
   startExpressServer();
+  log.info("Starting websocket server...");
   startWebsocketServer();
 });
