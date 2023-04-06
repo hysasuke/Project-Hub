@@ -1,4 +1,4 @@
-const { app, Tray, Menu, nativeImage } = require("electron");
+const { app, Tray, Menu, nativeImage, autoUpdater } = require("electron");
 const sqlite3 = require("sqlite3");
 const fs = require("fs");
 const { startExpressServer } = require("./expressServer");
