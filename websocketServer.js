@@ -2,6 +2,7 @@ const WebSocket = require("ws");
 const audio = require("win-audio").speaker;
 const server = new WebSocket.Server({ port: 8080 });
 
+const { keyboard, Key } = require("@nut-tree/nut-js");
 const startWebsocketServer = () => {
   server.on("connection", (socket) => {
     global.ws = socket;
@@ -28,7 +29,7 @@ const startWebsocketServer = () => {
   });
 };
 
-const messageHandler = (message) => {
+const messageHandler = async (message) => {
   if (!message.type) {
     return;
   }
@@ -59,6 +60,11 @@ const messageHandler = (message) => {
             data: { muted: false }
           })
         );
+      }
+    case "keyPress":
+      if (message.data.key) {
+        await keyboard.pressKey(Key[message.data.key]);
+        await keyboard.releaseKey(Key[message.data.key]);
       }
     default:
       break;

@@ -13,9 +13,10 @@ async function getGroups(req, res) {
 }
 
 async function addGroup(req, res) {
-  const { name } = req.body;
+  const { name, type } = req.body;
   global.db.run(
-    `INSERT INTO 'group' (name) VALUES ('${name}');`,
+    `INSERT INTO 'group' (name, type) VALUES (?,?);`,
+    [name, type ? type : "group"],
     (err, rows) => {
       if (err) {
         console.error(err.message);

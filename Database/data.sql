@@ -25,3 +25,4 @@ CREATE TABLE IF NOT EXISTS `group_item` (
 );
 
 
+ALTER TABLE `group` ADD COLUMN `type` varchar(255) NOT NULL DEFAULT 'group';
