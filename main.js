@@ -1,11 +1,4 @@
-const {
-  app,
-  Tray,
-  Menu,
-  nativeImage,
-  autoUpdater,
-  dialog
-} = require("electron");
+const { app, Tray, Menu, nativeImage, autoUpdater } = require("electron");
 const sqlite3 = require("sqlite3");
 const fs = require("fs");
 const { startExpressServer, stopExpressServer } = require("./expressServer");
@@ -16,133 +9,140 @@ const {
 const path = require("path");
 const { openUrl } = require("./Controllers/system-controller");
 const log = require("electron-log");
-
 if (require("electron-squirrel-startup")) app.quit();
 
-const handleDatabase = () => {
-  // Check if database folder exists
-  const databasePath = path.join(app.getPath("appData"), "ProjectHub");
+const handleDatabase = async () => {
+  try {
+    // Check if database folder exists
+    const databasePath = path.join(app.getPath("appData"), "ProjectHub");
 
-  const dbFileName = "database.db";
-  if (!fs.existsSync(databasePath)) {
-    fs.mkdirSync(databasePath);
-    // Create empty database.db file
-    fs.writeFileSync(path.join(databasePath, dbFileName), "");
-  }
-  const db = new sqlite3.Database(databasePath + "/" + dbFileName);
-  const sql = fs
-    .readFileSync(path.join(__dirname + "/database/data.sql"))
-    .toString();
-  let tray;
-
-  db.exec(sql, function (err) {
-    if (err) {
-      console.error(err.message);
-    } else {
-      console.log("Queries executed successfully.");
+    const dbFileName = "database.db";
+    if (!fs.existsSync(databasePath)) {
+      fs.mkdirSync(databasePath);
+      // Create empty database.db file
+      fs.writeFileSync(path.join(databasePath, dbFileName), "");
     }
-  });
+    const db = new sqlite3.Database(databasePath + "/" + dbFileName);
 
-  global.db = db;
+    const sql = fs
+      .readFileSync(path.join(__dirname + "/database/data.sql"))
+      .toString();
+    let tray;
+
+    db.exec(sql, function (err) {
+      if (err) {
+        console.error(err.message);
+      } else {
+        console.log("Queries executed successfully.");
+      }
+    });
+
+    global.db = db;
+  } catch (error) {
+    console.log(error);
+  }
 };
 
 app.whenReady().then(async () => {
-  log.info(process.argv);
-  // Check for update
-  autoUpdater.setFeedURL({
-    url: "https://github.com/hysasuke/Project-Hub/releases/latest/download/"
-  });
+  try {
+    // Check for update
+    autoUpdater.setFeedURL({
+      url: "https://github.com/hysasuke/Project-Hub/releases/latest/download/"
+    });
 
-  autoUpdater.on("checking-for-update", () => {
-    log.info("Checking for update...");
-  });
-  autoUpdater.on("update-available", (info) => {
-    log.info("Update available.");
-  });
+    autoUpdater.on("checking-for-update", () => {
+      log.info("Checking for update...");
+    });
+    autoUpdater.on("update-available", (info) => {
+      log.info("Update available.");
+    });
 
-  autoUpdater.on("update-downloaded", (info) => {
-    log.info("Update downloaded");
-    autoUpdater.quitAndInstall();
-  });
+    autoUpdater.on("update-downloaded", (info) => {
+      log.info("Update downloaded");
+      autoUpdater.quitAndInstall();
+    });
 
-  autoUpdater.on("update-not-available", (info) => {
-    log.info("Update not available.");
-  });
+    autoUpdater.on("update-not-available", (info) => {
+      log.info("Update not available.");
+    });
 
-  autoUpdater.on("error", (err) => {
-    log.info("Error in auto-updater. " + err);
-  });
+    autoUpdater.on("error", (err) => {
+      log.info("Error in auto-updater. " + err);
+    });
 
-  autoUpdater.on("before-quit-for-update", () => {
-    log.info("Update downloaded; will install on quit");
-    stopExpressServer();
-    stopWebsocketServer();
-  });
+    autoUpdater.on("before-quit-for-update", () => {
+      log.info("Update downloaded; will install on quit");
+      stopExpressServer();
+      stopWebsocketServer();
+    });
 
-  // Listen to before-quit event
-  app.on("before-quit", () => {
-    log.info("App is quitting...");
-    stopExpressServer();
-    stopWebsocketServer();
-  });
+    // Listen to before-quit event
+    app.on("before-quit", () => {
+      log.info("App is quitting...");
+      stopExpressServer();
+      stopWebsocketServer();
+    });
 
-  // set auto update if in production
-  if (app.isPackaged) {
-    autoUpdater.checkForUpdates();
-  }
-  // Make appData directory
-  const appDataPath = path.join(app.getPath("appData"), "ProjectHub");
-  if (!fs.existsSync(appDataPath)) {
-    fs.mkdirSync(appDataPath);
-  }
-  handleDatabase();
-  const iconPath = path.join(__dirname + "/assets/Images/icon.ico");
-  const icon = nativeImage.createFromPath(iconPath);
-  tray = new Tray(icon);
-
-  const loginItemSettings = app.getLoginItemSettings({
-    openAtLogin: true
-  });
-  const appFolder = path.dirname(process.execPath);
-  const updateExe = path.resolve(appFolder, "..", "Update.exe");
-  const exeName = path.basename(process.execPath);
-  // note: your contextMenu, Tooltip and Title code will go here!
-  const contextMenu = Menu.buildFromTemplate([
-    { label: "Current Version: " + app.getVersion(), enabled: false },
-    {
-      label: "Auto Start",
-      type: "checkbox",
-      checked: loginItemSettings.openAtLogin,
-      click: () => {
-        app.setLoginItemSettings({
-          openAtLogin: !loginItemSettings.openAtLogin,
-          path: updateExe
-        });
-      }
-    },
-    {
-      label: "Open Project Hub",
-      click: () => {
-        openUrl("http://localhost:9153");
-      }
-    },
-    {
-      type: "separator"
-    },
-    {
-      label: "Exit",
-      click: () => {
-        app.quit();
-      }
+    // set auto update if in production
+    if (app.isPackaged) {
+      autoUpdater.checkForUpdates();
     }
-  ]);
+    // Make appData directory
+    const appDataPath = path.join(app.getPath("appData"), "ProjectHub");
+    if (!fs.existsSync(appDataPath)) {
+      fs.mkdirSync(appDataPath);
+    }
+    handleDatabase();
+    const iconPath = path.join(__dirname + "/assets/Images/icon.ico");
+    const icon = nativeImage.createFromPath(iconPath);
+    tray = new Tray(icon);
 
-  tray.setContextMenu(contextMenu);
-  tray.setToolTip("Project Hub");
-  tray.setTitle("Project Hub");
+    const loginItemSettings = app.getLoginItemSettings({
+      openAtLogin: true
+    });
+    const appFolder = path.dirname(process.execPath);
+    const updateExe = path.resolve(appFolder, "..", "Update.exe");
+    const exeName = path.basename(process.execPath);
+    // note: your contextMenu, Tooltip and Title code will go here!
+    const contextMenu = Menu.buildFromTemplate([
+      { label: "Current Version: " + app.getVersion(), enabled: false },
+      {
+        label: "Auto Start",
+        type: "checkbox",
+        checked: loginItemSettings.openAtLogin,
+        click: () => {
+          app.setLoginItemSettings({
+            openAtLogin: !loginItemSettings.openAtLogin,
+            path: updateExe
+          });
+        }
+      },
+      {
+        label: "Open Project Hub",
+        click: () => {
+          openUrl("http://localhost:9153");
+        }
+      },
+      {
+        type: "separator"
+      },
+      {
+        label: "Exit",
+        click: () => {
+          app.quit();
+        }
+      }
+    ]);
 
-  log.info("Starting express server...");
-  startExpressServer();
-  log.info("Starting websocket server...");
-  startWebsocketServer();
+    tray.setContextMenu(contextMenu);
+    tray.setToolTip("Project Hub");
+    tray.setTitle("Project Hub");
+
+    log.info("Starting express server...");
+    startExpressServer();
+    log.info("Starting websocket server...");
+    startWebsocketServer();
+  } catch (error) {
+    log.error(error);
+  }
 });
