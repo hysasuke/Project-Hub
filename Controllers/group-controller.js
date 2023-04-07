@@ -56,7 +56,9 @@ async function createGroupItem(req, res) {
   let icon = "";
   if (type === "link") {
     let data = await getFavicons(url);
-    icon = data.icons[0].src;
+    if (data.icons.length > 0) {
+      icon = data.icons[0].src;
+    }
   } else if (type === "file") {
     icon = selectedFile.icon;
   }
