@@ -29,7 +29,6 @@ let server;
 const upload = multer({ dest: "public/icons" });
 
 const port = 9153;
-const log = require("electron-log");
 function startExpressServer() {
   expressApp.use(cors());
   expressApp.use(express.json());
