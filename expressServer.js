@@ -3,6 +3,8 @@ const path = require("path");
 const cors = require("cors");
 
 const log = require("electron-log");
+const multer = require("multer");
+
 const {
   getGroups,
   addGroup,
@@ -12,7 +14,8 @@ const {
   renameGroup,
   deleteGroup,
   renameGroupItem,
-  reorderGroupItems
+  reorderGroupItems,
+  reorderGroups
 } = require("./Controllers/group-controller");
 const {
   selectFile,
@@ -23,7 +26,10 @@ const {
 const { handleGroupItem } = require("./Controllers/group-item-controller");
 const expressApp = express();
 let server;
+const upload = multer({ dest: "public/icons" });
+
 const port = 9153;
+const log = require("electron-log");
 function startExpressServer() {
   expressApp.use(cors());
   expressApp.use(express.json());
@@ -49,6 +55,10 @@ function startExpressServer() {
 
   expressApp.post("/group/rename/:id", async (req, res) => {
     await renameGroup(req, res);
+  });
+
+  expressApp.post("/group/reorder/", async (req, res) => {
+    await reorderGroups(req, res);
   });
 
   expressApp.post("/groupItem/reorder/", async (req, res) => {
@@ -97,6 +107,19 @@ function startExpressServer() {
 
   expressApp.get("/system/volume", (req, res) => {
     getVolume(req, res);
+  });
+
+  expressApp.post("/upload/icon", upload.single("file"), (req, res) => {
+    // req.file contains information about the uploaded file
+    const { originalname, filename } = req.file;
+    res.status(200);
+    res.send({
+      error: 0,
+      data: {
+        originalname,
+        filename
+      }
+    });
   });
 
   expressApp.get("/serverHealthCheck", (req, res) => {

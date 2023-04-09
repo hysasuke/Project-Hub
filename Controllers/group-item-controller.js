@@ -8,7 +8,8 @@ function handleGroupItem(req, res) {
     [groupItemID],
     async (err, row) => {
       if (err) {
-        console.error(err.message);
+        log.error(err.message);
+        res.status(500);
         res.send({
           error: 1,
           data: null,
