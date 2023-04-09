@@ -6,6 +6,7 @@ const { startWebsocketServer } = require("./websocketServer");
 const path = require("path");
 const { openUrl } = require("./Controllers/system-controller");
 const log = require("electron-log");
+const { getIpAddress } = require("./Utils/utils");
 if (require("electron-squirrel-startup")) app.quit();
 
 const handleDatabase = async () => {
@@ -24,66 +25,26 @@ const handleDatabase = async () => {
     const sql = fs
       .readFileSync(path.join(__dirname + "/database/data.sql"))
       .toString();
-    let tray;
 
     db.exec(sql, function (err) {
       if (err) {
-        console.error(err.message);
+        log.error(err.message);
       } else {
-        console.log("Queries executed successfully.");
+        log.info("Queries executed successfully.");
       }
     });
 
     global.db = db;
   } catch (error) {
-    console.log(error);
+    log.error(error);
   }
 };
 
 app.whenReady().then(async () => {
+  errorCatcher();
   try {
-    // Check for update
-    autoUpdater.setFeedURL({
-      url: "https://github.com/hysasuke/Project-Hub/releases/latest/download/"
-    });
-
-    autoUpdater.on("checking-for-update", () => {
-      log.info("Checking for update...");
-    });
-    autoUpdater.on("update-available", (info) => {
-      log.info("Update available.");
-    });
-
-    autoUpdater.on("update-downloaded", (info) => {
-      log.info("Update downloaded");
-      autoUpdater.quitAndInstall();
-    });
-
-    autoUpdater.on("update-not-available", (info) => {
-      log.info("Update not available.");
-    });
-
-    autoUpdater.on("error", (err) => {
-      log.info("Error in auto-updater. " + err);
-    });
-
-    autoUpdater.on("before-quit-for-update", () => {
-      log.info("Update downloaded; will install on quit");
-      stopExpressServer();
-      stopWebsocketServer();
-    });
-
-    // Listen to before-quit event
-    app.on("before-quit", () => {
-      log.info("App is quitting...");
-      stopExpressServer();
-      stopWebsocketServer();
-    });
-
-    // set auto update if in production
-    if (app.isPackaged) {
-      autoUpdater.checkForUpdates();
-    }
+    let [address] = getIpAddress();
+    setupAutoUpdater();
     // Make appData directory
     const appDataPath = path.join(app.getPath("appData"), "ProjectHub");
     if (!fs.existsSync(appDataPath)) {
@@ -92,17 +53,29 @@ app.whenReady().then(async () => {
     handleDatabase();
     const iconPath = path.join(__dirname + "/assets/Images/icon.ico");
     const icon = nativeImage.createFromPath(iconPath);
-    tray = new Tray(icon);
-
-    const loginItemSettings = app.getLoginItemSettings({
-      openAtLogin: true
-    });
+    let tray = new Tray(icon);
     const appFolder = path.dirname(process.execPath);
     const updateExe = path.resolve(appFolder, "..", "Update.exe");
     const exeName = path.basename(process.execPath);
+
+    const loginItemSettings = app.getLoginItemSettings({
+      openAtLogin: true,
+      path: updateExe,
+      args: [
+        "--processStart",
+        `"${exeName}"`,
+        "--process-start-args",
+        `"--hidden"`
+      ]
+    });
+
     // note: your contextMenu, Tooltip and Title code will go here!
     const contextMenu = Menu.buildFromTemplate([
       { label: "Current Version: " + app.getVersion(), enabled: false },
+      {
+        label: "Client Address: " + "http://" + address + ":9153",
+        enabled: false
+      },
       {
         label: "Auto Start",
         type: "checkbox",
@@ -110,7 +83,13 @@ app.whenReady().then(async () => {
         click: () => {
           app.setLoginItemSettings({
             openAtLogin: !loginItemSettings.openAtLogin,
-            path: updateExe
+            path: updateExe,
+            args: [
+              "--processStart",
+              `"${exeName}"`,
+              "--process-start-args",
+              `"--hidden"`
+            ]
           });
         }
       },
@@ -143,3 +122,55 @@ app.whenReady().then(async () => {
     log.error(error);
   }
 });
+
+function errorCatcher() {
+  process.on("uncaughtException", function (error) {
+    // Handle the error
+    log.error(error);
+  });
+}
+
+function setupAutoUpdater() {
+  // Check for update
+  autoUpdater.setFeedURL({
+    url: "https://github.com/hysasuke/Project-Hub/releases/latest/download/"
+  });
+
+  autoUpdater.on("checking-for-update", () => {
+    log.info("Checking for update...");
+  });
+  autoUpdater.on("update-available", (info) => {
+    log.info("Update available.");
+  });
+
+  autoUpdater.on("update-downloaded", (info) => {
+    log.info("Update downloaded");
+    autoUpdater.quitAndInstall();
+  });
+
+  autoUpdater.on("update-not-available", (info) => {
+    log.info("Update not available.");
+  });
+
+  autoUpdater.on("error", (err) => {
+    log.info("Error in auto-updater. " + err);
+  });
+
+  autoUpdater.on("before-quit-for-update", () => {
+    log.info("Update downloaded; will install on quit");
+    stopExpressServer();
+    stopWebsocketServer();
+  });
+
+  // Listen to before-quit event
+  app.on("before-quit", () => {
+    log.info("App is quitting...");
+    stopExpressServer();
+    stopWebsocketServer();
+  });
+
+  // set auto update if in production
+  if (app.isPackaged) {
+    autoUpdater.checkForUpdates();
+  }
+}

@@ -21,6 +21,7 @@ const {
 const { handleGroupItem } = require("./Controllers/group-item-controller");
 const expressApp = express();
 const port = 9153;
+const log = require("electron-log");
 function startExpressServer() {
   expressApp.use(cors());
   expressApp.use(express.json());
