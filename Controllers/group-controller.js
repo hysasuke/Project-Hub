@@ -80,7 +80,7 @@ async function getGroupItems(req, res) {
 
 async function createGroupItem(req, res) {
   const { groupId } = req.params;
-  const { name, type, selectedFile, url, keybind } = req.body;
+  const { name, type, selectedFile, url, keybind, icon } = req.body;
   if (!name) {
     res.status(400);
     res.send({
@@ -109,14 +109,18 @@ async function createGroupItem(req, res) {
     return;
   }
   let getFavicons = require("get-website-favicon");
-  let icon = "";
-  if (type === "link") {
-    let data = await getFavicons(url);
-    if (data.icons.length > 0) {
-      icon = data.icons[0].src;
+  let _icon = "";
+  if (icon) {
+    _icon = icon.filename;
+  } else {
+    if (type === "link") {
+      let data = await getFavicons(url);
+      if (data.icons.length > 0) {
+        _icon = data.icons[0].src;
+      }
+    } else if (type === "file") {
+      _icon = selectedFile.icon;
     }
-  } else if (type === "file") {
-    icon = selectedFile.icon;
   }
   global.db.run(
     `INSERT INTO 'group_item' (group_id, name, type, path, url, icon, keybind) VALUES (?,?,?,?,?,?,?);`,
@@ -126,7 +130,7 @@ async function createGroupItem(req, res) {
       type,
       selectedFile?.path,
       url ? url : "",
-      icon,
+      _icon,
       keybind ? keybind : ""
     ],
     (err, rows) => {

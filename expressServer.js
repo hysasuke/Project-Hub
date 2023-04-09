@@ -1,6 +1,8 @@
 const express = require("express");
 const path = require("path");
 const cors = require("cors");
+const multer = require("multer");
+
 const {
   getGroups,
   addGroup,
@@ -20,6 +22,8 @@ const {
 } = require("./Controllers/system-controller");
 const { handleGroupItem } = require("./Controllers/group-item-controller");
 const expressApp = express();
+const upload = multer({ dest: "public/icons" });
+
 const port = 9153;
 const log = require("electron-log");
 function startExpressServer() {
@@ -95,6 +99,19 @@ function startExpressServer() {
 
   expressApp.get("/system/volume", (req, res) => {
     getVolume(req, res);
+  });
+
+  expressApp.post("/upload/icon", upload.single("file"), (req, res) => {
+    // req.file contains information about the uploaded file
+    const { originalname, filename } = req.file;
+    res.status(200);
+    res.send({
+      error: 0,
+      data: {
+        originalname,
+        filename
+      }
+    });
   });
 
   expressApp.get("/serverHealthCheck", (req, res) => {
