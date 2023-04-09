@@ -12,7 +12,8 @@ const {
   renameGroup,
   deleteGroup,
   renameGroupItem,
-  reorderGroupItems
+  reorderGroupItems,
+  reorderGroups
 } = require("./Controllers/group-controller");
 const {
   selectFile,
@@ -51,6 +52,10 @@ function startExpressServer() {
 
   expressApp.post("/group/rename/:id", async (req, res) => {
     await renameGroup(req, res);
+  });
+
+  expressApp.post("/group/reorder/", async (req, res) => {
+    await reorderGroups(req, res);
   });
 
   expressApp.post("/groupItem/reorder/", async (req, res) => {

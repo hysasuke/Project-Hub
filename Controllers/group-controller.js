@@ -1,7 +1,7 @@
 const log = require("electron-log");
 
 async function getGroups(req, res) {
-  global.db.all(`SELECT * FROM 'group';`, (err, rows) => {
+  global.db.all(`SELECT * FROM 'group' order by [order];`, (err, rows) => {
     if (err) {
       log.error(err.message);
       res.status(500);
@@ -275,6 +275,32 @@ async function reorderGroupItems(req, res) {
   res.status(200);
 }
 
+async function reorderGroups(req, res) {
+  const { groups } = req.body;
+  let i = 0;
+  const output = { success: [], error: [] };
+  groups.forEach((item) => {
+    global.db.run(
+      `UPDATE 'group' SET [order] = ? WHERE id = ?;`,
+      [i, item.id],
+      (err, rows) => {
+        if (err) {
+          console.error(err.message);
+          output.error.push(rows);
+        } else {
+          output.success.push(rows);
+        }
+      }
+    );
+    i++;
+  });
+  res.send({
+    error: 0,
+    data: output
+  });
+  res.status(200);
+}
+
 module.exports = {
   getGroups,
   addGroup,
@@ -284,5 +310,6 @@ module.exports = {
   renameGroup,
   deleteGroup,
   renameGroupItem,
-  reorderGroupItems
+  reorderGroupItems,
+  reorderGroups
 };
