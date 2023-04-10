@@ -1,4 +1,11 @@
-const { app, Tray, Menu, nativeImage, autoUpdater } = require("electron");
+const {
+  app,
+  Tray,
+  Menu,
+  nativeImage,
+  autoUpdater,
+  BrowserWindow
+} = require("electron");
 const sqlite3 = require("sqlite3");
 const fs = require("fs");
 const { startExpressServer, stopExpressServer } = require("./expressServer");
@@ -46,6 +53,11 @@ const handleDatabase = async () => {
 app.whenReady().then(async () => {
   errorCatcher();
   try {
+    // Create the browser window, but don't show it for resisting the process
+    let win = new BrowserWindow({
+      show: false
+    });
+
     let [address] = getIpAddress();
     setupAutoUpdater();
     // Make appData directory
@@ -99,7 +111,7 @@ app.whenReady().then(async () => {
       {
         label: "Open Project Hub",
         click: () => {
-          openUrl("http://localhost:9153");
+          openUrl(`http://${address}:9153`);
         }
       },
       {
