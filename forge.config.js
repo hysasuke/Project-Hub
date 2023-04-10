@@ -1,19 +1,15 @@
+const fs = require("fs");
+
+const path = require("path");
 module.exports = {
   packagerConfig: {
-    icon: "./assets/Images/icon.ico"
+    icon: "./assets/Images/icon"
   },
   makers: [
     {
-      name: "@electron-forge/maker-squirrel",
+      name: "@electron-forge/maker-dmg",
       config: {
-        name: "ProjectHub",
-        authors: "Wenhao Li",
-        exe: "ProjectHub.exe",
-        setupIcon: "./assets/Images/icon.ico",
-        iconUrl:
-          "https://raw.githubusercontent.com/ProjectHub-Team/ProjectHub/master/assets/Images/icon.ico",
-        loadingGif: "./assets/Images/loading.gif",
-        noMsi: true
+        format: "ULFO"
       }
     }
   ]

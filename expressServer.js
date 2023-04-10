@@ -17,19 +17,15 @@ const {
   reorderGroupItems,
   reorderGroups
 } = require("./Controllers/group-controller");
-const {
-  selectFile,
-  shutdown,
-  setVolume,
-  getVolume
-} = require("./Controllers/system-controller");
+const { selectFile } = require("./Controllers/system-controller");
 const { handleGroupItem } = require("./Controllers/group-item-controller");
 const expressApp = express();
 let server;
-const upload = multer({ dest: "public/icons" });
+const upload = multer({ dest: path.join(__dirname, "public", "icons") });
 
 const port = 9153;
 function startExpressServer() {
+  log.info(path.join(__dirname, "public"));
   expressApp.use(cors());
   expressApp.use(express.json());
   expressApp.use(express.static(path.join(__dirname, "public")));
@@ -86,18 +82,6 @@ function startExpressServer() {
 
   expressApp.get("/requestFileSelection", (req, res) => {
     selectFile(req, res);
-  });
-
-  expressApp.get("/system/shutdown", (req, res) => {
-    shutdown();
-    res.send("ok");
-    res.status(200);
-  });
-
-  expressApp.get("/system/restart", (req, res) => {
-    shutdown();
-    res.send("ok");
-    res.status(200);
   });
 
   expressApp.post("/system/volume", (req, res) => {
