@@ -1,4 +1,11 @@
-const { app, Tray, Menu, nativeImage, autoUpdater } = require("electron");
+const {
+  app,
+  Tray,
+  Menu,
+  nativeImage,
+  autoUpdater,
+  BrowserWindow
+} = require("electron");
 const sqlite3 = require("sqlite3");
 const fs = require("fs");
 const { startExpressServer } = require("./expressServer");
@@ -43,6 +50,11 @@ const handleDatabase = async () => {
 app.whenReady().then(async () => {
   errorCatcher();
   try {
+    // Create the browser window, but don't show it for resisting the process
+    let win = new BrowserWindow({
+      show: false
+    });
+
     let [address] = getIpAddress();
     setupAutoUpdater();
     // Make appData directory
