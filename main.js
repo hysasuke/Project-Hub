@@ -108,7 +108,7 @@ app.whenReady().then(async () => {
       {
         label: "Open Project Hub",
         click: () => {
-          openUrl("http://localhost:9153");
+          openUrl(`http://${address}:9153`);
         }
       },
       {
