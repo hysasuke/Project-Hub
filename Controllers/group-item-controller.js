@@ -50,6 +50,7 @@ function handleGroupItem(req, res) {
                 return Key[modifierName];
               });
               const key = splitted[1];
+              keyboard.config.autoDelayMs = 0;
               await keyboard.pressKey(...keyCodes, Key[key]);
               await keyboard.releaseKey(...keyCodes, Key[key]);
               break;

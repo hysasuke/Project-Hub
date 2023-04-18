@@ -9,7 +9,8 @@ module.exports = {
     {
       name: "@electron-forge/maker-dmg",
       config: {
-        format: "ULFO"
+        format: "ULFO",
+        icon: "./assets/Images/icon.icns"
       }
     }
   ]

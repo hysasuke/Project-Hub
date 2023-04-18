@@ -19,6 +19,13 @@ const {
 } = require("./Controllers/group-controller");
 const { selectFile } = require("./Controllers/system-controller");
 const { handleGroupItem } = require("./Controllers/group-item-controller");
+const {
+  getHeaderComponents,
+  addHeaderComponent,
+  removeHeaderComponent,
+  reorderHeaderComponents,
+  handleHeaderComponent
+} = require("./Controllers/header-controller");
 const expressApp = express();
 let server;
 const upload = multer({ dest: path.join(__dirname, "public", "icons") });
@@ -90,6 +97,26 @@ function startExpressServer() {
 
   expressApp.get("/system/volume", (req, res) => {
     getVolume(req, res);
+  });
+
+  expressApp.get("/headerComponent", async (req, res) => {
+    await getHeaderComponents(req, res);
+  });
+
+  expressApp.post("/headerComponent", async (req, res) => {
+    await addHeaderComponent(req, res);
+  });
+
+  expressApp.delete("/headerComponent/:id", async (req, res) => {
+    await removeHeaderComponent(req, res);
+  });
+
+  expressApp.post("/headerComponent/reorder/", async (req, res) => {
+    await reorderHeaderComponents(req, res);
+  });
+
+  expressApp.post("/headerComponent/execute/", async (req, res) => {
+    await handleHeaderComponent(req, res);
   });
 
   expressApp.post("/upload/icon", upload.single("file"), (req, res) => {
