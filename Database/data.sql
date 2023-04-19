@@ -24,5 +24,17 @@ CREATE TABLE IF NOT EXISTS `group_item` (
   `keybind` varchar(255)
 );
 
+/* Create Header Components table */
+CREATE TABLE IF NOT EXISTS `header_component` (
+  `id` INTEGER PRIMARY KEY AUTOINCREMENT,
+  `created` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `modified` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `order` int(11) NOT NULL DEFAULT 0,
+  `type` varchar(255),
+  `customInfo` varchar(255),
+  `bondType` varchar(255),
+  `bondInfo` varchar(255)
+);
+
 
 ALTER TABLE `group` ADD COLUMN `type` varchar(255) NOT NULL DEFAULT 'group';

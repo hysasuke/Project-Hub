@@ -14,6 +14,15 @@ function getIpAddress() {
   return addresses;
 }
 
+async function getLatestRelease() {
+  //url:  https://api.github.com/repos/OWNER/REPO/releases/latest
+  let url = "https://api.github.com/repos/hysasuke/Project-Hub/releases/latest";
+  const result = await fetch(url);
+  const latestRelease = await result.json();
+  return latestRelease;
+}
+
 module.exports = {
-  getIpAddress
+  getIpAddress,
+  getLatestRelease
 };
