@@ -117,9 +117,9 @@ function restart() {
 
 module.exports = {
   selectFile,
-  openUrl
-  // shutdown,
-  // restart
+  openUrl,
+  shutdown,
+  restart
   // setVolume,
   // getVolume
 };
