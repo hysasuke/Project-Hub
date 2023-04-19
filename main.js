@@ -57,6 +57,7 @@ app.whenReady().then(async () => {
     let win = new BrowserWindow({
       show: false
     });
+
     let [address] = getIpAddress();
     setupAutoUpdater();
     // Make appData directory
@@ -65,7 +66,7 @@ app.whenReady().then(async () => {
       fs.mkdirSync(appDataPath);
     }
     handleDatabase();
-    const iconPath = path.join(__dirname + "/assets/Images/iconTemplate.ico");
+    const iconPath = path.join(__dirname + "/assets/Images/icon.ico");
     const icon = nativeImage.createFromPath(iconPath);
     let tray = new Tray(icon);
     const appFolder = path.dirname(process.execPath);

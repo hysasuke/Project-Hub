@@ -9,8 +9,8 @@
   "private": false,
   "scripts": {
     "start": "electron-forge start",
-    "package": "electron-forge --arch=arm64,x64 package",
-    "make": "electron-forge --arch=arm64,x64 make",
+    "package": "electron-forge package",
+    "make": "electron-forge make",
     "publish": "electron-forge publish"
   },
   "devDependencies": {
@@ -18,8 +18,7 @@
     "@electron-forge/maker-deb": "^6.0.5",
     "@electron-forge/maker-rpm": "^6.0.5",
     "@electron-forge/maker-squirrel": "^6.0.5",
-    "@electron-forge/maker-zip": "^6.1.1",
-    "@electron-forge/maker-dmg": "^6.1.1",
+    "@electron-forge/maker-zip": "^6.0.5",
     "electron": "^23.1.1",
     "electron-builder": "^23.6.0"
   },
@@ -29,7 +28,6 @@
     "electron-log": "^4.4.8",
     "electron-squirrel-startup": "^1.0.0",
     "express": "^4.18.2",
-    "file-icon": "4.0.0",
     "get-website-favicon": "^0.0.7",
     "multer": "^1.4.5-lts.1",
     "next": "^13.2.4",
@@ -38,6 +36,7 @@
     "react-dom": "^18.2.0",
     "sqlite3": "^5.1.4",
     "update-electron-app": "^2.0.1",
+    "win-audio": "^2.0.2",
     "ws": "^8.13.0"
   },
   "config": {

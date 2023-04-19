@@ -1,18 +1,19 @@
-const { dialog, BrowserWindow, app, shell } = require("electron");
+const { dialog, BrowserWindow, app } = require("electron");
 const path = require("path");
 const { exec } = require("child_process");
+const audio = require("win-audio").speaker;
 const fs = require("fs");
 async function selectFile(req, res) {
   // Set window icon
   const win = new BrowserWindow({
-    icon: path.join(__dirname, "/../assets/Images/iconTemplate.ico")
+    icon: path.join(__dirname, "/../assets/Images/icon.ico")
   });
   win.moveTop();
   win.setOpacity(0);
   let selectedFiles = await dialog
     .showOpenDialog(win, {
       properties: ["openFile"],
-      setIcon: path.join(__dirname, "/../assets/Images/iconTemplate.ico")
+      setIcon: path.join(__dirname, "/../assets/Images/icon.ico")
     })
     .finally(() => {
       win.close();
@@ -30,7 +31,6 @@ async function selectFile(req, res) {
         size: "large"
       }
     );
-
     // Save icon to appData
     const iconPath = path.join(__dirname, "/../public/icons");
     // Check if icon folder exists
@@ -61,8 +61,13 @@ async function selectFile(req, res) {
   }
 }
 
-async function openUrl(url) {
-  await shell.openExternal(url);
+function openUrl(url) {
+  exec(`start ${url}`, (err, stdout, stderr) => {
+    if (err) {
+      console.error(err);
+      return;
+    }
+  });
 }
 
 function shutdown() {
@@ -83,43 +88,43 @@ function restart() {
   });
 }
 
-// function setVolume(req, res) {
-//   if (req.body.muted === undefined) {
-//     audio.set(req.body.volume);
-//   } else {
-//     if (req.body.muted) {
-//       audio.mute();
-//     } else {
-//       audio.set(req.body.volume);
-//     }
-//   }
-//   res.status(200);
-//   res.send({
-//     error: 0,
-//     data: {
-//       volume: req.body.volume
-//     }
-//   });
-// }
+function setVolume(req, res) {
+  if (req.body.muted === undefined) {
+    audio.set(req.body.volume);
+  } else {
+    if (req.body.muted) {
+      audio.mute();
+    } else {
+      audio.set(req.body.volume);
+    }
+  }
+  res.status(200);
+  res.send({
+    error: 0,
+    data: {
+      volume: req.body.volume
+    }
+  });
+}
 
-// function getVolume(req, res) {
-//   let volume = audio.get();
-//   let isMuted = audio.isMuted();
-//   res.status(200);
-//   res.send({
-//     error: 0,
-//     data: {
-//       volume: volume,
-//       muted: isMuted
-//     }
-//   });
-// }
+function getVolume(req, res) {
+  let volume = audio.get();
+  let isMuted = audio.isMuted();
+  res.status(200);
+  res.send({
+    error: 0,
+    data: {
+      volume: volume,
+      muted: isMuted
+    }
+  });
+}
 
 module.exports = {
   selectFile,
-  openUrl
-  // shutdown,
-  // restart
-  // setVolume,
-  // getVolume
+  openUrl,
+  shutdown,
+  restart,
+  setVolume,
+  getVolume
 };

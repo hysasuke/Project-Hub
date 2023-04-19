@@ -25,32 +25,12 @@ function handleGroupItem(req, res) {
               openUrl(row.url);
               break;
             case "keybind":
-              systemPreferences.isTrustedAccessibilityClient(true);
               const splitted = row.keybind.split(":");
               const modifiers = splitted[0].split("+");
               const keyCodes = modifiers.map((modifier) => {
-                let modifierName = "";
-                switch (modifier) {
-                  case "Control":
-                    modifierName = "LeftControl";
-                    break;
-                  case "Alt":
-                    modifierName = "LeftAlt";
-                    break;
-                  case "Shift":
-                    modifierName = "LeftShift";
-                    break;
-                  case "Command":
-                    modifierName = "LeftSuper";
-                    break;
-                  default:
-                    modifierName = modifier;
-                    break;
-                }
-                return Key[modifierName];
+                return Key[modifier];
               });
               const key = splitted[1];
-              keyboard.config.autoDelayMs = 0;
               await keyboard.pressKey(...keyCodes, Key[key]);
               await keyboard.releaseKey(...keyCodes, Key[key]);
               break;
