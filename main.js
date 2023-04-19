@@ -3,8 +3,8 @@ const {
   Tray,
   Menu,
   nativeImage,
-  BrowserWindow,
-  Notification
+  autoUpdater,
+  BrowserWindow
 } = require("electron");
 const sqlite3 = require("sqlite3");
 const fs = require("fs");
@@ -16,7 +16,7 @@ const {
 const path = require("path");
 const { openUrl } = require("./Controllers/system-controller");
 const log = require("electron-log");
-const { getIpAddress, getLatestRelease } = require("./Utils/utils");
+const { getIpAddress } = require("./Utils/utils");
 if (require("electron-squirrel-startup")) app.quit();
 
 const handleDatabase = async () => {
@@ -49,16 +49,14 @@ const handleDatabase = async () => {
     log.error(error);
   }
 };
-let tray;
+
 app.whenReady().then(async () => {
-  app.dock.hide();
   errorCatcher();
   try {
     // Create the browser window, but don't show it for resisting the process
     let win = new BrowserWindow({
       show: false
     });
-
     let [address] = getIpAddress();
     setupAutoUpdater();
     // Make appData directory
@@ -67,15 +65,22 @@ app.whenReady().then(async () => {
       fs.mkdirSync(appDataPath);
     }
     handleDatabase();
-    const iconPath = path.join(__dirname + "/assets/Images/iconTemplate.png");
-    const icon = nativeImage
-      .createFromPath(iconPath)
-      .resize({ width: 24, height: 24 });
-    icon.setTemplateImage(true);
-    tray = new Tray(icon);
+    const iconPath = path.join(__dirname + "/assets/Images/iconTemplate.ico");
+    const icon = nativeImage.createFromPath(iconPath);
+    let tray = new Tray(icon);
+    const appFolder = path.dirname(process.execPath);
+    const updateExe = path.resolve(appFolder, "..", "Update.exe");
+    const exeName = path.basename(process.execPath);
 
     const loginItemSettings = app.getLoginItemSettings({
-      openAtLogin: true
+      openAtLogin: true,
+      path: updateExe,
+      args: [
+        "--processStart",
+        `"${exeName}"`,
+        "--process-start-args",
+        `"--hidden"`
+      ]
     });
 
     // note: your contextMenu, Tooltip and Title code will go here!
@@ -91,7 +96,14 @@ app.whenReady().then(async () => {
         checked: loginItemSettings.openAtLogin,
         click: () => {
           app.setLoginItemSettings({
-            openAtLogin: !loginItemSettings.openAtLogin
+            openAtLogin: !loginItemSettings.openAtLogin,
+            path: updateExe,
+            args: [
+              "--processStart",
+              `"${exeName}"`,
+              "--process-start-args",
+              `"--hidden"`
+            ]
           });
         }
       },
@@ -114,6 +126,7 @@ app.whenReady().then(async () => {
 
     tray.setContextMenu(contextMenu);
     tray.setToolTip("Project Hub");
+    tray.setTitle("Project Hub");
 
     log.info("Starting express server...");
     startExpressServer();
@@ -131,33 +144,47 @@ function errorCatcher() {
   });
 }
 
-async function setupAutoUpdater() {
+function setupAutoUpdater() {
   // Check for update
-  let release = await getLatestRelease();
-  let currentVersion = app.getVersion();
-  let latestVersion = release.tag_name.replace("v", "");
-
-  if (currentVersion === latestVersion) return;
-
-  // Create notification
-  const notification = new Notification({
-    title: "Update Available",
-    body: `New version ${latestVersion} is available.`
-  });
-  notification.show();
-
-  const handleAction = (event) => {
-    switch (event.sender.title) {
-      case "Update Available":
-        openUrl("https://project-hub.app");
-    }
-  };
-
-  notification.addListener("action", (event, index) => {
-    handleAction(event);
+  autoUpdater.setFeedURL({
+    url: "https://github.com/hysasuke/Project-Hub/releases/latest/download/"
   });
 
-  notification.addListener("click", (event) => {
-    handleAction(event);
+  autoUpdater.on("checking-for-update", () => {
+    log.info("Checking for update...");
   });
+  autoUpdater.on("update-available", (info) => {
+    log.info("Update available.");
+  });
+
+  autoUpdater.on("update-downloaded", (info) => {
+    log.info("Update downloaded");
+    autoUpdater.quitAndInstall();
+  });
+
+  autoUpdater.on("update-not-available", (info) => {
+    log.info("Update not available.");
+  });
+
+  autoUpdater.on("error", (err) => {
+    log.info("Error in auto-updater. " + err);
+  });
+
+  autoUpdater.on("before-quit-for-update", () => {
+    log.info("Update downloaded; will install on quit");
+    stopExpressServer();
+    stopWebsocketServer();
+  });
+
+  // Listen to before-quit event
+  app.on("before-quit", () => {
+    log.info("App is quitting...");
+    stopExpressServer();
+    stopWebsocketServer();
+  });
+
+  // set auto update if in production
+  if (app.isPackaged) {
+    autoUpdater.checkForUpdates();
+  }
 }
