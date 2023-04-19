@@ -1,7 +1,6 @@
 const { dialog, BrowserWindow, app, shell } = require("electron");
 const path = require("path");
-const fileIcon = require("file-icon");
-
+const { exec } = require("child_process");
 const fs = require("fs");
 async function selectFile(req, res) {
   // Set window icon
@@ -20,24 +19,27 @@ async function selectFile(req, res) {
     });
   if (!selectedFiles.canceled) {
     let filePath = selectedFiles.filePaths[0].toString();
-    let fileName = filePath.split("/").pop();
+    let fileName = filePath.split("\\").pop();
     let splittedFileName = fileName.split(".");
     splittedFileName.pop();
     let fileNameWithoutExtension = splittedFileName.join(".");
 
-    const fileIconMac = await fileIcon.buffer(
-      filePath // Path to file
+    const fileIcon = await app.getFileIcon(
+      selectedFiles.filePaths[0].toString(),
+      {
+        size: "large"
+      }
     );
 
     // Save icon to appData
-    const iconPath = path.join(__dirname, "../public", "icons");
+    const iconPath = path.join(__dirname, "/../public/icons");
     // Check if icon folder exists
     if (!fs.existsSync(iconPath)) {
       fs.mkdirSync(iconPath);
     }
 
     let iconName = fileNameWithoutExtension + ".png";
-    fs.writeFileSync(iconPath + "/" + iconName, fileIconMac);
+    fs.writeFileSync(iconPath + "/" + iconName, fileIcon.toPNG());
 
     res.status(200);
     res.send({
@@ -63,26 +65,23 @@ async function openUrl(url) {
   await shell.openExternal(url);
 }
 
-/*
-   Disabled for Mac OS since it requires sudo, and users don't usually shutdown their Mac
-*/
-// function shutdown() {
-//   exec(`shutdown -h now`, (err, stdout, stderr) => {
-//     if (err) {
-//       console.error(err);
-//       return;
-//     }
-//   });
-// }
+function shutdown() {
+  exec(`shutdown -s -t 0`, (err, stdout, stderr) => {
+    if (err) {
+      console.error(err);
+      return;
+    }
+  });
+}
 
-// function restart() {
-//   exec(`shutdown -r -t 0`, (err, stdout, stderr) => {
-//     if (err) {
-//       console.error(err);
-//       return;
-//     }
-//   });
-// }
+function restart() {
+  exec(`shutdown -r -t 0`, (err, stdout, stderr) => {
+    if (err) {
+      console.error(err);
+      return;
+    }
+  });
+}
 
 // function setVolume(req, res) {
 //   if (req.body.muted === undefined) {
