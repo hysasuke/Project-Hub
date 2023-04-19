@@ -132,32 +132,34 @@ function errorCatcher() {
 }
 
 async function setupAutoUpdater() {
-  // Check for update
-  let release = await getLatestRelease();
-  let currentVersion = app.getVersion();
-  let latestVersion = release.tag_name.replace("v", "");
+  // Check for update every hour
+  setInterval(async () => {
+    let release = await getLatestRelease();
+    let currentVersion = app.getVersion();
+    let latestVersion = release.tag_name.replace("v", "");
 
-  if (currentVersion === latestVersion) return;
+    if (currentVersion === latestVersion) return;
 
-  // Create notification
-  const notification = new Notification({
-    title: "Update Available",
-    body: `New version ${latestVersion} is available.`
-  });
-  notification.show();
+    // Create notification
+    const notification = new Notification({
+      title: "Update Available",
+      body: `New version ${latestVersion} is available.`
+    });
+    notification.show();
 
-  const handleAction = (event) => {
-    switch (event.sender.title) {
-      case "Update Available":
-        openUrl("https://project-hub.app");
-    }
-  };
+    const handleAction = (event) => {
+      switch (event.sender.title) {
+        case "Update Available":
+          openUrl("https://project-hub.app");
+      }
+    };
 
-  notification.addListener("action", (event, index) => {
-    handleAction(event);
-  });
+    notification.addListener("action", (event, index) => {
+      handleAction(event);
+    });
 
-  notification.addListener("click", (event) => {
-    handleAction(event);
-  });
+    notification.addListener("click", (event) => {
+      handleAction(event);
+    });
+  }, 1000 * 60 * 60);
 }
