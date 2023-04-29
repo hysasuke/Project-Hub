@@ -58,7 +58,6 @@ app.whenReady().then(async () => {
     let win = new BrowserWindow({
       show: false
     });
-
     let [address] = getIpAddress();
     setupAutoUpdater();
     // Make appData directory
@@ -162,4 +161,12 @@ async function setupAutoUpdater() {
       handleAction(event);
     });
   }, 1000 * 60 * 60);
+}
+
+function clipboardListener() {
+  setInterval(() => {
+    const clipboard = require("electron").clipboard;
+    const text = clipboard.readImage();
+    // console.log(text);
+  }, 1000);
 }
