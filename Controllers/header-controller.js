@@ -1,6 +1,8 @@
 const log = require("electron-log");
-
+const os = require("os");
 const { keyboard, Key } = require("@nut-tree/nut-js");
+const { exec } = require("child_process");
+const platform = os.platform();
 async function getHeaderComponents(req, res) {
   global.db.all(
     `SELECT * FROM header_component ORDER BY [order];`,
@@ -125,8 +127,67 @@ async function handleHeaderComponent(req, res) {
     case "mediaControl":
       handleMediaControlAction(req, res);
       break;
+    case "screenShot":
+      handleScreenshotAction(req, res);
+      break;
     default:
       break;
+  }
+}
+
+async function handleScreenshotAction(req, res) {
+  const body = req.body;
+  if (!body.region) {
+    res.status(400);
+    res.send({
+      error: 1,
+      data: null,
+      message: "Region is required"
+    });
+    return;
+  }
+  let modifier = [];
+  let key = null;
+  switch (body.region) {
+    case "custom":
+      if (platform === "darwin") {
+        modifier = [Key.LeftSuper, Key.LeftShift];
+        key = Key.Num5;
+        await keyboard.pressKey(...modifier, key);
+        await keyboard.releaseKey(...modifier, key);
+      } else if (platform === "win32") {
+        exec("snippingtool /clip");
+      }
+      res.status(200);
+      res.send({
+        error: 0,
+        data: null,
+        message: "Success"
+      });
+      break;
+    case "fullScreen":
+      if (platform === "darwin") {
+        modifier = [Key.LeftSuper, Key.LeftShift];
+        key = Key.Num3;
+        await keyboard.pressKey(...modifier, key);
+        await keyboard.releaseKey(...modifier, key);
+      } else if (platform === "win32") {
+        exec("snippingtool");
+      }
+      res.status(200);
+      res.send({
+        error: 0,
+        data: null,
+        message: "Success"
+      });
+      break;
+    default:
+      res.status(400);
+      res.send({
+        error: 1,
+        data: null,
+        message: "Direction is invalid"
+      });
   }
 }
 

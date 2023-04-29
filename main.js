@@ -51,6 +51,7 @@ const handleDatabase = async () => {
 };
 
 app.whenReady().then(async () => {
+  // clipboardListener();
   errorCatcher();
   try {
     // Create the browser window, but don't show it for resisting the process
@@ -187,4 +188,12 @@ function setupAutoUpdater() {
   if (app.isPackaged) {
     autoUpdater.checkForUpdates();
   }
+}
+
+function clipboardListener() {
+  setInterval(() => {
+    const clipboard = require("electron").clipboard;
+    const text = clipboard.readImage();
+    // console.log(text);
+  }, 1000);
 }
