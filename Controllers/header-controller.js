@@ -3,6 +3,7 @@ const os = require("os");
 const { keyboard, Key } = require("@nut-tree/nut-js");
 const { exec } = require("child_process");
 const platform = os.platform();
+const { postMessage } = require("../websocketServer");
 async function getHeaderComponents(req, res) {
   global.db.all(
     `SELECT * FROM header_component ORDER BY [order];`,
@@ -50,6 +51,10 @@ async function addHeaderComponent(req, res) {
           message: err.message
         });
       } else {
+        postMessage({
+          type: "updateInfo",
+          target: "header"
+        });
         // Get the last inserted id
         res.send({
           error: 0,
@@ -76,6 +81,10 @@ async function removeHeaderComponent(req, res) {
           message: err.message
         });
       } else {
+        postMessage({
+          type: "updateInfo",
+          target: "header"
+        });
         res.send({
           error: 0,
           data: rows ? rows : []
@@ -104,6 +113,10 @@ async function reorderHeaderComponents(req, res) {
       }
     );
     i++;
+  });
+  postMessage({
+    type: "updateInfo",
+    target: "header"
   });
   res.send({
     error: 0,
