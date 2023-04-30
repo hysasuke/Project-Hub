@@ -1,3 +1,4 @@
+const { systemPreferences } = require("electron");
 const { open } = require("./application-controller");
 const { openUrl } = require("./system-controller");
 const { keyboard, Key } = require("@nut-tree/nut-js");
