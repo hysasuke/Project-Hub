@@ -17,7 +17,11 @@ const {
   reorderGroupItems,
   reorderGroups
 } = require("./Controllers/group-controller");
-const { selectFile } = require("./Controllers/system-controller");
+const {
+  selectFile,
+  shutdown,
+  restart
+} = require("./Controllers/system-controller");
 const { handleGroupItem } = require("./Controllers/group-item-controller");
 const {
   getHeaderComponents,
@@ -89,6 +93,14 @@ function startExpressServer() {
 
   expressApp.get("/requestFileSelection", (req, res) => {
     selectFile(req, res);
+  });
+
+  expressApp.get("/system/shutdown", (req, res) => {
+    shutdown();
+  });
+
+  expressApp.get("/system/restart", (req, res) => {
+    restart();
   });
 
   expressApp.post("/system/volume", (req, res) => {
