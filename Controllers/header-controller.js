@@ -152,7 +152,7 @@ async function handleScreenshotAction(req, res) {
     case "custom":
       if (platform === "darwin") {
         modifier = [Key.LeftSuper, Key.LeftShift];
-        key = Key.Num5;
+        key = Key.Num4;
         await keyboard.pressKey(...modifier, key);
         await keyboard.releaseKey(...modifier, key);
       } else if (platform === "win32") {
