@@ -1,5 +1,5 @@
 const log = require("electron-log");
-
+const { postMessage } = require("../websocketServer");
 async function getGroups(req, res) {
   global.db.all(`SELECT * FROM 'group' order by [order];`, (err, rows) => {
     if (err) {
@@ -44,6 +44,10 @@ async function addGroup(req, res) {
           message: err.message
         });
       } else {
+        postMessage({
+          type: "updateInfo",
+          target: "group"
+        });
         res.send({
           error: 0,
           data: rows ? rows : []
@@ -143,6 +147,10 @@ async function createGroupItem(req, res) {
           message: err.message
         });
       } else {
+        postMessage({
+          type: "updateInfo",
+          target: "groupItem"
+        });
         res.send({
           error: 0,
           data: rows ? rows : []
@@ -191,6 +199,10 @@ async function renameGroup(req, res) {
           message: err.message
         });
       } else {
+        postMessage({
+          type: "updateInfo",
+          target: "group"
+        });
         res.send({
           error: 0,
           data: rows ? rows : []
@@ -213,6 +225,10 @@ async function deleteGroup(req, res) {
         message: err.message
       });
     } else {
+      postMessage({
+        type: "updateInfo",
+        target: "group"
+      });
       res.send({
         error: 0,
         data: rows ? rows : []
@@ -239,6 +255,10 @@ async function renameGroupItem(req, res) {
           message: err.message
         });
       } else {
+        postMessage({
+          type: "updateInfo",
+          target: "groupItem"
+        });
         res.send({
           error: 0,
           data: rows ? rows : []
@@ -268,6 +288,10 @@ async function reorderGroupItems(req, res) {
     );
     i++;
   });
+  postMessage({
+    type: "updateInfo",
+    target: "groupItem"
+  });
   res.send({
     error: 0,
     data: output
@@ -293,6 +317,10 @@ async function reorderGroups(req, res) {
       }
     );
     i++;
+  });
+  postMessage({
+    type: "updateInfo",
+    target: "group"
   });
   res.send({
     error: 0,

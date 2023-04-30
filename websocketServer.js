@@ -4,8 +4,11 @@ const server = new WebSocket.Server({ port: 8080 });
 const { keyboard, Key } = require("@nut-tree/nut-js");
 const startWebsocketServer = () => {
   server.on("connection", (socket) => {
-    global.ws = socket;
-
+    if (global.ws) {
+      global.ws.push(socket);
+    } else {
+      global.ws = [socket];
+    }
     socket.on("message", (message) => {
       messageHandler(JSON.parse(message));
     });
@@ -23,27 +26,33 @@ const messageHandler = async (message) => {
   switch (message.type) {
     case "system_volume":
       if (message.data.volume) {
-        global.ws?.send(
-          JSON.stringify({
-            type: "system_volume",
-            data: { volume: message.data.volume }
-          })
-        );
+        global.ws?.forEach((ws) => {
+          ws.send(
+            JSON.stringify({
+              type: "system_volume",
+              data: { volume: message.data.volume }
+            })
+          );
+        });
       }
       if (message.data.muted) {
-        global.ws?.send(
-          JSON.stringify({
-            type: "system_volume",
-            data: { muted: true }
-          })
-        );
+        global.ws?.forEach((ws) => {
+          ws.send(
+            JSON.stringify({
+              type: "system_volume",
+              data: { muted: true }
+            })
+          );
+        });
       } else {
-        global.ws?.send(
-          JSON.stringify({
-            type: "system_volume",
-            data: { muted: false }
-          })
-        );
+        global.ws?.forEach((ws) => {
+          ws.send(
+            JSON.stringify({
+              type: "system_volume",
+              data: { muted: false }
+            })
+          );
+        });
       }
     case "keyPress":
       if (message.data.key) {
@@ -59,7 +68,14 @@ function stopWebsocketServer() {
   server.close();
 }
 
+function postMessage(message) {
+  global.ws?.forEach((ws) => {
+    ws.send(JSON.stringify(message));
+  });
+}
+
 module.exports = {
   startWebsocketServer,
-  stopWebsocketServer
+  stopWebsocketServer,
+  postMessage
 };

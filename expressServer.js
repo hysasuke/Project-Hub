@@ -97,14 +97,10 @@ function startExpressServer() {
 
   expressApp.get("/system/shutdown", (req, res) => {
     shutdown();
-    res.send("ok");
-    res.status(200);
   });
 
   expressApp.get("/system/restart", (req, res) => {
-    shutdown();
-    res.send("ok");
-    res.status(200);
+    restart();
   });
 
   expressApp.post("/system/volume", (req, res) => {

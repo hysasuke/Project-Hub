@@ -3,20 +3,14 @@ const fs = require("fs");
 const path = require("path");
 module.exports = {
   packagerConfig: {
-    icon: "./assets/Images/iconTemplate"
+    icon: "./assets/Images/icon"
   },
   makers: [
     {
-      name: "@electron-forge/maker-squirrel",
+      name: "@electron-forge/maker-dmg",
       config: {
-        name: "ProjectHub",
-        authors: "Wenhao Li",
-        exe: "ProjectHub.exe",
-        setupIcon: "./assets/Images/iconTemplate.ico",
-        iconUrl:
-          "https://raw.githubusercontent.com/ProjectHub-Team/ProjectHub/master/assets/Images/iconTemplate.ico",
-        loadingGif: "./assets/Images/loading.gif",
-        noMsi: true
+        format: "ULFO",
+        icon: "./assets/Images/icon.icns"
       }
     }
   ]
