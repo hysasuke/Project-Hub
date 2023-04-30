@@ -25,7 +25,6 @@ function handleGroupItem(req, res) {
               openUrl(row.url);
               break;
             case "keybind":
-              systemPreferences.isTrustedAccessibilityClient(true);
               const splitted = row.keybind.split(":");
               const modifiers = splitted[0].split("+");
               const keyCodes = modifiers.map((modifier) => {
