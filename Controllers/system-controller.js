@@ -1,8 +1,8 @@
 const { dialog, BrowserWindow, app, shell } = require("electron");
 const path = require("path");
 const fileIcon = require("file-icon");
-
 const fs = require("fs");
+const { exec } = require("child_process");
 async function selectFile(req, res) {
   // Set window icon
   const win = new BrowserWindow({
@@ -66,23 +66,23 @@ async function openUrl(url) {
 /*
    Disabled for Mac OS since it requires sudo, and users don't usually shutdown their Mac
 */
-// function shutdown() {
-//   exec(`shutdown -h now`, (err, stdout, stderr) => {
-//     if (err) {
-//       console.error(err);
-//       return;
-//     }
-//   });
-// }
+function shutdown() {
+  exec(`shutdown -s`, (err, stdout, stderr) => {
+    if (err) {
+      console.error(err);
+      return;
+    }
+  });
+}
 
-// function restart() {
-//   exec(`shutdown -r -t 0`, (err, stdout, stderr) => {
-//     if (err) {
-//       console.error(err);
-//       return;
-//     }
-//   });
-// }
+function restart() {
+  exec(`shutdown -r -t 0`, (err, stdout, stderr) => {
+    if (err) {
+      console.error(err);
+      return;
+    }
+  });
+}
 
 // function setVolume(req, res) {
 //   if (req.body.muted === undefined) {
@@ -118,9 +118,9 @@ async function openUrl(url) {
 
 module.exports = {
   selectFile,
-  openUrl
-  // shutdown,
-  // restart
+  openUrl,
+  shutdown,
+  restart
   // setVolume,
   // getVolume
 };
