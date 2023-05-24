@@ -4,7 +4,8 @@ const {
   Menu,
   nativeImage,
   BrowserWindow,
-  Notification
+  Notification,
+  autoUpdater
 } = require("electron");
 const sqlite3 = require("sqlite3");
 const fs = require("fs");
@@ -17,6 +18,7 @@ const path = require("path");
 const { openUrl } = require("./Controllers/system-controller");
 const log = require("electron-log");
 const { getIpAddress, getLatestRelease } = require("./Utils/utils");
+const { platform } = require("os");
 if (require("electron-squirrel-startup")) app.quit();
 
 const handleDatabase = async () => {
@@ -50,6 +52,7 @@ const handleDatabase = async () => {
   }
 };
 let tray;
+
 app.whenReady().then(async () => {
   errorCatcher();
   try {
@@ -70,11 +73,27 @@ app.whenReady().then(async () => {
       .createFromPath(iconPath)
       .resize({ width: 24, height: 24 });
     icon.setTemplateImage(true);
+    const appFolder = path.dirname(process.execPath);
+    const updateExe = path.resolve(appFolder, "..", "Update.exe");
+    const exeName = path.basename(process.execPath);
+    const loginItemSettingArgs =
+      platform() === "win32"
+        ? {
+            openAtLogin: true,
+            path: updateExe,
+            args: [
+              "--processStart",
+              `"${exeName}"`,
+              "--process-start-args",
+              `"--hidden"`
+            ]
+          }
+        : {
+            openAtLogin: true
+          };
     tray = new Tray(icon);
 
-    const loginItemSettings = app.getLoginItemSettings({
-      openAtLogin: true
-    });
+    const loginItemSettings = app.getLoginItemSettings(loginItemSettingArgs);
 
     // note: your contextMenu, Tooltip and Title code will go here!
     const contextMenu = Menu.buildFromTemplate([
@@ -88,9 +107,7 @@ app.whenReady().then(async () => {
         type: "checkbox",
         checked: loginItemSettings.openAtLogin,
         click: () => {
-          app.setLoginItemSettings({
-            openAtLogin: !loginItemSettings.openAtLogin
-          });
+          app.setLoginItemSettings(loginItemSettingArgs);
         }
       },
       {
@@ -130,36 +147,81 @@ function errorCatcher() {
 }
 
 async function setupAutoUpdater() {
-  // Check for update every hour
-  setInterval(async () => {
-    let release = await getLatestRelease();
-    let currentVersion = app.getVersion();
-    let latestVersion = release.tag_name.replace("v", "");
+  if (platform() === "darwin") {
+    // Check for update every hour
+    setInterval(async () => {
+      let release = await getLatestRelease();
+      let currentVersion = app.getVersion();
+      let latestVersion = release.tag_name.replace("v", "");
 
-    if (currentVersion === latestVersion) return;
+      if (currentVersion === latestVersion) return;
 
-    // Create notification
-    const notification = new Notification({
-      title: "Update Available",
-      body: `New version ${latestVersion} is available.`
+      // Create notification
+      const notification = new Notification({
+        title: "Update Available",
+        body: `New version ${latestVersion} is available.`
+      });
+      notification.show();
+
+      const handleAction = (event) => {
+        switch (event.sender.title) {
+          case "Update Available":
+            openUrl("https://project-hub.app");
+        }
+      };
+
+      notification.addListener("action", (event, index) => {
+        handleAction(event);
+      });
+
+      notification.addListener("click", (event) => {
+        handleAction(event);
+      });
+    }, 1000 * 60 * 60);
+  } else if (platform() === "win32") {
+    // Check for update
+    autoUpdater.setFeedURL({
+      url: "https://github.com/hysasuke/Project-Hub/releases/latest/download/"
     });
-    notification.show();
 
-    const handleAction = (event) => {
-      switch (event.sender.title) {
-        case "Update Available":
-          openUrl("https://project-hub.app");
-      }
-    };
-
-    notification.addListener("action", (event, index) => {
-      handleAction(event);
+    autoUpdater.on("checking-for-update", () => {
+      log.info("Checking for update...");
+    });
+    autoUpdater.on("update-available", (info) => {
+      log.info("Update available.");
     });
 
-    notification.addListener("click", (event) => {
-      handleAction(event);
+    autoUpdater.on("update-downloaded", (info) => {
+      log.info("Update downloaded");
+      autoUpdater.quitAndInstall();
     });
-  }, 1000 * 60 * 60);
+
+    autoUpdater.on("update-not-available", (info) => {
+      log.info("Update not available.");
+    });
+
+    autoUpdater.on("error", (err) => {
+      log.info("Error in auto-updater. " + err);
+    });
+
+    autoUpdater.on("before-quit-for-update", () => {
+      log.info("Update downloaded; will install on quit");
+      stopExpressServer();
+      stopWebsocketServer();
+    });
+
+    // Listen to before-quit event
+    app.on("before-quit", () => {
+      log.info("App is quitting...");
+      stopExpressServer();
+      stopWebsocketServer();
+    });
+
+    // set auto update if in production
+    if (app.isPackaged) {
+      autoUpdater.checkForUpdates();
+    }
+  }
 }
 
 function clipboardListener() {
