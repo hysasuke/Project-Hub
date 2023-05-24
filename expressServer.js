@@ -17,14 +17,19 @@ const {
   reorderGroupItems,
   reorderGroups
 } = require("./Controllers/group-controller");
-const { selectFile } = require("./Controllers/system-controller");
+const {
+  selectFile,
+  shutdown,
+  restart
+} = require("./Controllers/system-controller");
 const { handleGroupItem } = require("./Controllers/group-item-controller");
 const {
   getHeaderComponents,
   addHeaderComponent,
   removeHeaderComponent,
   reorderHeaderComponents,
-  handleHeaderComponent
+  handleHeaderComponent,
+  updateHeaderComponent
 } = require("./Controllers/header-controller");
 const expressApp = express();
 let server;
@@ -91,6 +96,14 @@ function startExpressServer() {
     selectFile(req, res);
   });
 
+  expressApp.get("/system/shutdown", (req, res) => {
+    shutdown();
+  });
+
+  expressApp.get("/system/restart", (req, res) => {
+    restart();
+  });
+
   expressApp.post("/system/volume", (req, res) => {
     setVolume(req, res);
   });
@@ -105,6 +118,10 @@ function startExpressServer() {
 
   expressApp.post("/headerComponent", async (req, res) => {
     await addHeaderComponent(req, res);
+  });
+
+  expressApp.post("/headerComponent/:id", async (req, res) => {
+    await updateHeaderComponent(req, res);
   });
 
   expressApp.delete("/headerComponent/:id", async (req, res) => {

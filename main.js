@@ -51,7 +51,6 @@ const handleDatabase = async () => {
 };
 let tray;
 app.whenReady().then(async () => {
-  app.dock.hide();
   errorCatcher();
   try {
     // Create the browser window, but don't show it for resisting the process
