@@ -6,7 +6,7 @@ const platform = os.platform();
 const { postMessage } = require("../websocketServer");
 async function getHeaderComponents(req, res) {
   global.db.all(
-    `SELECT * FROM header_component ORDER BY [order];`,
+    `SELECT * FROM header_component WHERE type IS NOT NULL ORDER BY [order] ;`,
     (err, rows) => {
       if (err) {
         log.error(err.message);
@@ -96,24 +96,27 @@ async function removeHeaderComponent(req, res) {
 }
 
 async function reorderHeaderComponents(req, res) {
-  const { components } = req.body;
+  let { components } = req.body;
+
   let i = 0;
   const output = { success: [], error: [] };
-  components.forEach((item) => {
-    global.db.run(
-      `UPDATE 'header_component' SET [order] = ? WHERE type = ?;`,
-      [i, item.type],
-      (err, rows) => {
-        if (err) {
-          log.error(err.message);
-          output.error.push(rows);
-        } else {
-          output.success.push(rows);
+  components
+    .filter((component) => !!component.type)
+    .forEach((item) => {
+      global.db.run(
+        `UPDATE 'header_component' SET [order] = ? WHERE type = ?;`,
+        [i, item.type],
+        (err, rows) => {
+          if (err) {
+            log.error(err.message);
+            output.error.push(rows);
+          } else {
+            output.success.push(rows);
+          }
         }
-      }
-    );
-    i++;
-  });
+      );
+      i++;
+    });
   postMessage({
     type: "updateInfo",
     target: "header"
@@ -123,6 +126,61 @@ async function reorderHeaderComponents(req, res) {
     data: output
   });
   res.status(200);
+}
+
+async function updateHeaderComponent(req, res) {
+  const { id } = req.params;
+  const { customInfo, bondType, bondInfo } = req.body;
+  // Get order of the component
+  global.db.get(
+    `SELECT [order], type, customInfo, bondType, bondInfo FROM header_component WHERE id = ?;`,
+    [id],
+    (err, row) => {
+      if (err) {
+        log.error(err.message);
+        res.status(500);
+        res.send({
+          error: 1,
+          data: null,
+          message: err.message
+        });
+      } else {
+        if (row) {
+          let order = row.order;
+          let type = row.type;
+          let _customInfo = customInfo !== null ? customInfo : row.customInfo;
+          let _bondType = bondType ? bondType : row.bondType;
+          let _bondInfo = bondInfo ? bondInfo : row.bondInfo;
+
+          global.db.run(
+            `UPDATE header_component SET type = ?, [order] = ?, customInfo = ?, bondType = ?, bondInfo = ? WHERE id = ?;`,
+            [type, order, _customInfo, _bondType, _bondInfo, id],
+            (err, rows) => {
+              if (err) {
+                log.error(err.message);
+                res.status(500);
+                res.send({
+                  error: 1,
+                  data: null,
+                  message: err.message
+                });
+              } else {
+                postMessage({
+                  type: "updateInfo",
+                  target: "header"
+                });
+                res.send({
+                  error: 0,
+                  data: rows ? rows : []
+                });
+                res.status(200);
+              }
+            }
+          );
+        }
+      }
+    }
+  );
 }
 
 async function handleHeaderComponent(req, res) {
@@ -381,5 +439,6 @@ module.exports = {
   addHeaderComponent,
   removeHeaderComponent,
   reorderHeaderComponents,
-  handleHeaderComponent
+  handleHeaderComponent,
+  updateHeaderComponent
 };

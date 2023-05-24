@@ -28,7 +28,8 @@ const {
   addHeaderComponent,
   removeHeaderComponent,
   reorderHeaderComponents,
-  handleHeaderComponent
+  handleHeaderComponent,
+  updateHeaderComponent
 } = require("./Controllers/header-controller");
 const expressApp = express();
 let server;
@@ -117,6 +118,10 @@ function startExpressServer() {
 
   expressApp.post("/headerComponent", async (req, res) => {
     await addHeaderComponent(req, res);
+  });
+
+  expressApp.post("/headerComponent/:id", async (req, res) => {
+    await updateHeaderComponent(req, res);
   });
 
   expressApp.delete("/headerComponent/:id", async (req, res) => {
