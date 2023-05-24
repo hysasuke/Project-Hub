@@ -19,6 +19,7 @@ const { openUrl } = require("./Controllers/system-controller");
 const log = require("electron-log");
 const { getIpAddress, getLatestRelease } = require("./Utils/utils");
 const { platform } = require("os");
+
 if (require("electron-squirrel-startup")) app.quit();
 
 const handleDatabase = async () => {
@@ -55,6 +56,9 @@ let tray;
 
 app.whenReady().then(async () => {
   errorCatcher();
+  if (platform() === "darwin") {
+    app.dock.hide();
+  }
   try {
     // Create the browser window, but don't show it for resisting the process
     let win = new BrowserWindow({
