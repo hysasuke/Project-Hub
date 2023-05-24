@@ -120,7 +120,7 @@ function startExpressServer() {
     await addHeaderComponent(req, res);
   });
 
-  expressApp.post("/headerComponent/:id", async (req, res) => {
+  expressApp.post("/headerComponent/update/:id", async (req, res) => {
     await updateHeaderComponent(req, res);
   });
 
