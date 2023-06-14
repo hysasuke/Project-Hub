@@ -3,6 +3,8 @@ const path = require("path");
 const fileIcon = require("file-icon");
 const fs = require("fs");
 const { exec } = require("child_process");
+
+const { platform } = require("os");
 async function selectFile(req, res) {
   // Set window icon
   const win = new BrowserWindow({
@@ -20,14 +22,27 @@ async function selectFile(req, res) {
     });
   if (!selectedFiles.canceled) {
     let filePath = selectedFiles.filePaths[0].toString();
-    let fileName = filePath.split("/").pop();
+    let splitToken = platform() === "win32" ? "\\" : "/";
+    let fileName = filePath.split(splitToken).pop();
     let splittedFileName = fileName.split(".");
     splittedFileName.pop();
     let fileNameWithoutExtension = splittedFileName.join(".");
-
-    const fileIconMac = await fileIcon.buffer(
-      filePath // Path to file
-    );
+    let savingFileIcon = null;
+    if (platform() === "win32") {
+      savingFileIcon = await app.getFileIcon(
+        selectedFiles.filePaths[0].toString(),
+        {
+          size: "large"
+        }
+      );
+      if (savingFileIcon.toPNG) {
+        savingFileIcon = savingFileIcon.toPNG();
+      }
+    } else if (platform() === "darwin") {
+      savingFileIcon = await fileIcon.buffer(
+        filePath // Path to file
+      );
+    }
 
     // Save icon to appData
     const iconPath = path.join(__dirname, "../public", "icons");
@@ -37,7 +52,7 @@ async function selectFile(req, res) {
     }
 
     let iconName = fileNameWithoutExtension + ".png";
-    fs.writeFileSync(iconPath + "/" + iconName, fileIconMac);
+    fs.writeFileSync(iconPath + "/" + iconName, savingFileIcon);
 
     res.status(200);
     res.send({
